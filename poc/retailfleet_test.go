@@ -8,12 +8,14 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go"
+	"github.com/tbeets/npoci"
+	"github.com/tbeets/poci"
 )
 
 func TestStartRetailFleet(t *testing.T) {
 	wd, _ := os.Getwd()
 	rf := StartRetailFleet(wd + "/..")
-	require_True(t, len(rf.servers) == 1)
+	poci.Require_True(t, len(rf.servers) == 1)
 	defer StopRetailFleet(rf)
 }
 
@@ -50,9 +52,9 @@ var testBStr = `
     {
       "name": "testA",
       "filter_subject": ">",
-	  "external": {
+      "external": {
          "api": "$JS.testA.API",
-		 "deliver": "testB"
+         "deliver": "testB"
       }
     }
   ],
@@ -82,12 +84,12 @@ func TestCrossAccountSourcing(t *testing.T) {
 	deleteTempState()
 
 	rf := StartRetailFleet(wd + "/..")
-	require_True(t, len(rf.servers) == 1)
+	poci.Require_True(t, len(rf.servers) == 1)
 	defer StopRetailFleet(rf)
 	s := rf.servers[0]
 
-	cA, jscA := jsClientConnect(t, s, nats.UserInfo("user-testA", "s3cr3t"))
-	require_True(t, cA != nil && jscA != nil)
+	cA, jscA := npoci.JsClientConnect(t, s, nats.UserInfo("user-testA", "s3cr3t"))
+	poci.Require_True(t, cA != nil && jscA != nil)
 	defer cA.Close()
 
 	var err error
@@ -104,8 +106,8 @@ func TestCrossAccountSourcing(t *testing.T) {
 		t.Fatalf("error adding stream testA: %s", err.Error())
 	}
 
-	cB, jscB := jsClientConnect(t, s, nats.UserInfo("user-testB", "s3cr3t"))
-	require_True(t, cB != nil && jscB != nil)
+	cB, jscB := npoci.JsClientConnect(t, s, nats.UserInfo("user-testB", "s3cr3t"))
+	poci.Require_True(t, cB != nil && jscB != nil)
 	defer cB.Close()
 
 	err = json.Unmarshal([]byte(testBStr), &cfgB)
@@ -127,9 +129,9 @@ func TestCrossAccountSourcing(t *testing.T) {
 		t.Fatalf("expected to get info from steam testB for comparison: %s", err.Error())
 	}
 
-	CheckFor(t, 2*time.Second, 100*time.Millisecond, func() error {
+	poci.CheckFor(t, 2*time.Second, 100*time.Millisecond, func() error {
 		infoB, err := jscB.StreamInfo("testB")
-		require_NoError(t, err)
+		poci.Require_NoError(t, err)
 
 		m := infoB.State.Msgs
 		if m == 1 {
@@ -140,5 +142,5 @@ func TestCrossAccountSourcing(t *testing.T) {
 }
 
 func deleteTempState() {
-	RemoveContents("/tmp/jetstream")
+	_ = poci.RemoveContents("/tmp/jetstream")
 }
