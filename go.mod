@@ -4,7 +4,9 @@ go 1.19
 
 require (
 	github.com/nats-io/nats-server/v2 v2.9.11
-	github.com/nats-io/nats.go v1.19.0
+	github.com/nats-io/nats.go v1.23.0
+	github.com/tbeets/npoci v0.0.0-20230201010814-25868d1333a5
+	github.com/tbeets/poci v0.0.0-20230201010237-05b4a79b4f30
 )
 
 require (

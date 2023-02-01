@@ -1,18 +1,13 @@
 package poc
 
 import (
-	"github.com/nats-io/nats-server/v2/server"
 	"log"
 	"sync"
 	"time"
-)
 
-type serverConfSet struct {
-	serverName string
-	natsPort   int
-	httpPort   int
-	logFile    string
-}
+	"github.com/nats-io/nats-server/v2/server"
+	"github.com/tbeets/npoci"
+)
 
 type RetailFleet struct {
 	// Our servers.
@@ -29,7 +24,7 @@ var rf *RetailFleet
 
 func StartRetailFleet(projBaseDir string) *RetailFleet {
 	rf = &RetailFleet{servers: make([]*server.Server, 1), done: make(chan bool)}
-	rf.servers[0], _ = Up(projBaseDir + "/config/cloud_server.conf")
+	rf.servers[0], _ = npoci.Up(projBaseDir + "/config/cloud_server.conf")
 
 	for _, s := range rf.servers {
 		log.Printf("  Server: [%q]\n", s.ClientURL())
