@@ -51,7 +51,7 @@ var testBStr = `
   "sources": [
     {
       "name": "testA",
-      "filter_subject": ">",
+      "filter_subject": "foo.b",
       "external": {
          "api": "$JS.testA.API",
          "deliver": "testB"
@@ -120,15 +120,19 @@ func TestCrossAccountSourcing(t *testing.T) {
 		t.Fatalf("error adding stream testB: %s", err.Error())
 	}
 
-	_, err = jscA.Publish("foo.a", []byte("hello from acct testA"))
+	// Downstream should not get foo.a
+	_, err = jscA.Publish("foo.a", []byte("you should not see"))
 	if err != nil {
 		t.Fatalf("expected to be able to publish foo.a in testA: %s", err.Error())
 	}
 
+	// Downstream should get foo.b
+	_, err = jscA.Publish("foo.b", []byte("be my guest"))
 	if err != nil {
-		t.Fatalf("expected to get info from steam testB for comparison: %s", err.Error())
+		t.Fatalf("expected to be able to publish foo.b in testA: %s", err.Error())
 	}
 
+	time.Sleep(100 * time.Millisecond)
 	poci.CheckFor(t, 2*time.Second, 100*time.Millisecond, func() error {
 		infoB, err := jscB.StreamInfo("testB")
 		poci.Require_NoError(t, err)
@@ -139,6 +143,11 @@ func TestCrossAccountSourcing(t *testing.T) {
 		}
 		return fmt.Errorf("expected 1 message in downstream, got %d", m)
 	})
+
+	rmsg, err := jscB.GetLastMsg("testB", "foo.*")
+	poci.Require_NoError(t, err)
+	poci.Require_False(t, rmsg == nil)
+	poci.Require_False(t, rmsg.Subject == "foo.a")
 }
 
 func deleteTempState() {
