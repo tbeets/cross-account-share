@@ -45,6 +45,9 @@ var testAStr = `
 }
 `
 
+// testBStr is the stream configuration for the SOURCE (down)stream
+// Note that the stream name as well as the external delivery subject prefix
+// are arbitrary; however, they must agree with export/import grants
 var testBStr = `
 {
   "name": "testB",
